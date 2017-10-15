@@ -108,24 +108,28 @@ def runConversion(files, players, home):
 					print("Something went wrong for file " + file)
 					traceback.print_tb(e)
 
-def renamePlayerFolders(src):
+def renamePlayerFolders(src, home):
 	listOfFiles = []
 	for file in os.listdir(src):
-		if(os.path.isdir(file)):
-			listOfFiles.append(os.path.abspath(file))
+		if(os.path.isdir(file) and not file.startswith(".")):
 			playerName = file
 			os.chdir(os.path.abspath(file))
 			for childFile in os.listdir("."):
 				print(childFile)
+				underscoreIndex = childFile.index("_")
+				newNameStart = childFile[:underscoreIndex]
+				if home:
+					newName = childFile.replace(newNameStart, playerName + "_H")
+				else:
+					newName = childFile.replace(newNameStart, playerName + "_A")
+				os.rename(childFile, newName)
 			os.chdir("..")
-			#print(os.path.abspath(file))
-	return listOfFiles
 
 def main(home):
 	#players = readXML('Player_Opta_IDs.xml')
 	#files = readFiles('.', '.zip')
 	#runConversion(files, players, home)
-	renamePlayerFolders(".")
+	renamePlayerFolders(".", home)
 
 def addPostFixToFileName(filename, postfix):
 	index = filename.find("_")
@@ -135,4 +139,4 @@ def addPostFixToFileName(filename, postfix):
 	return newFilename
 
 if __name__ == '__main__':
-	main(True)
+	main(False)
