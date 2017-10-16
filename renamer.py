@@ -1,6 +1,8 @@
 from xml.dom import minidom
 import os, zipfile, traceback
 
+FAILED = []
+
 class Player(object):
 		id = 0
 		firstName = ""
@@ -116,8 +118,11 @@ def renamePlayerFolders(src, home):
 			os.chdir(os.path.abspath(file))
 			for childFile in os.listdir("."):
 				print(childFile)
-				underscoreIndex = childFile.index("_")
-				newNameStart = childFile[:underscoreIndex]
+				try:
+					underscoreIndex = childFile.index("_")
+					newNameStart = childFile[:underscoreIndex]
+				except:
+					print(childFile + " without underscore")
 				if home:
 					newName = childFile.replace(newNameStart, playerName + "_H")
 				else:
