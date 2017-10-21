@@ -1,5 +1,6 @@
 from xml.dom import minidom
 import os, zipfile, traceback
+from unidecode import unidecode
 
 FAILED = []
 
@@ -53,7 +54,7 @@ def renameFile(oldFile, playerFile):
 	
 	print("Renaming: " + oldFile + " to " + playerFile)
 	try:
-		os.rename(oldFile, playerFile)
+		os.rename(oldFile, unidecode(playerFile))
 		return True
 	except FileExistsError as e:
 		print("Could not rename file. The file " + playerFile + " already exists")
@@ -108,13 +109,14 @@ def runConversion(files, players, home):
 							print("")
 				except Exception as e:
 					print("Something went wrong for file " + file)
+					FAILED.append(file)
 					traceback.print_tb(e)
 
 def renamePlayerFolders(src, home):
 	listOfFiles = []
 	for file in os.listdir(src):
 		if(os.path.isdir(file) and not file.startswith(".")):
-			playerName = file
+			playerName = unidecode(file)
 			os.chdir(os.path.abspath(file))
 			for childFile in os.listdir("."):
 				print(childFile)
@@ -123,6 +125,7 @@ def renamePlayerFolders(src, home):
 					newNameStart = childFile[:underscoreIndex]
 				except:
 					print(childFile + " without underscore")
+					FAILED.append(childFile)
 				if home:
 					newName = childFile.replace(newNameStart, playerName + "_H")
 				else:
@@ -131,10 +134,12 @@ def renamePlayerFolders(src, home):
 			os.chdir("..")
 
 def main(home):
-	#players = readXML('Player_Opta_IDs.xml')
-	#files = readFiles('.', '.zip')
-	#runConversion(files, players, home)
+	players = readXML('Player_Opta_IDs.xml')
+	files = readFiles('.', '.zip')
+	runConversion(files, players, home)
 	renamePlayerFolders(".", home)
+	for failed in FAILED:
+		print("Failed: " + failed)
 
 def addPostFixToFileName(filename, postfix):
 	index = filename.find("_")
