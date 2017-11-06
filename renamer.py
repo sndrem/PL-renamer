@@ -1,6 +1,7 @@
 from xml.dom import minidom
 import os, zipfile, traceback
 from unidecode import unidecode
+import json
 
 FAILED = []
 
@@ -37,6 +38,25 @@ def readXML(xmlFile):
 	    	firstName = s.getElementsByTagName('Stat')[0].firstChild.nodeValue
 	    	lastName = s.getElementsByTagName('Stat')[1].firstChild.nodeValue
 	    	players.append(Player(playerID, firstName, lastName))
+
+	return players
+
+def readJson(jsonFile):
+	players = []
+	with open(jsonFile, 'r') as file:
+		jsonData = json.load(file)
+
+		for team in jsonData['teams']:
+			# print("\n\n" + team['teamName'] + "\n")
+			for player in team['players']:
+				# print(player['playerName'] + " - ID: " + player['playerId'])
+				nameParts = player['playerName'].split(" ")
+
+				firstName = nameParts[0]
+				lastName = " ".join(nameParts[1:len(nameParts) + 1])
+				
+				players.append(Player(firstName, lastName, player['playerId']))
+
 
 	return players
 
@@ -134,12 +154,13 @@ def renamePlayerFolders(src, home):
 			os.chdir("..")
 
 def main(home):
-	players = readXML('Player_Opta_IDs.xml')
-	files = readFiles('.', '.zip')
-	runConversion(files, players, home)
-	renamePlayerFolders(".", home)
-	for failed in FAILED:
-		print("Failed: " + failed)
+	# players = readXML('Player_Opta_IDs.xml')
+	players = readJson('players.json')
+	# files = readFiles('.', '.zip')
+	# runConversion(files, players, home)
+	# renamePlayerFolders(".", home)
+	# for failed in FAILED:
+	# 	print("Failed: " + failed)
 
 def addPostFixToFileName(filename, postfix):
 	index = filename.find("_")
