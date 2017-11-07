@@ -1,8 +1,9 @@
 from xml.dom import minidom
-import os, zipfile, traceback
+import os, zipfile, traceback, sys
 from unidecode import unidecode
 import json
 
+PLAYER_FILE = "players.json"
 FAILED = []
 
 class Player(object):
@@ -93,19 +94,6 @@ def unzipFile(file, player, postfix):
 	ref.extractall(playerDir)
 	ref.close()
 	print(player.firstName + " " + player.lastName + " unzipped")
-	# Rename all files inside directory
-	#print("Trying to list all files from " + os.path.abspath(playerDir))
-	# for file in os.listdir(playerDir):
-	# 	if file.endswith(".tga"):
-	# 		try:
-	# 			newPlayerSequenceName = file.replace(player.id, player.lastName.replace(" ", ""))
-	# 			newPlayerSequenceName = os.path.abspath(os.path.join(playerDir, newPlayerSequenceName, postfix))
-	# 			file = os.path.abspath(os.path.join(playerDir, file))
-	# 			print("Should rename: " + file + " to " + newPlayerSequenceName + " inside " + playerDir)
-	# 			os.rename(file, newPlayerSequenceName)
-	# 		except Exception as e:
-	# 			traceback.print_tb(e)
-	# 			print("Old file: " + file + " ----- New file: " + newPlayerSequenceName)
 
 
 def runConversion(files, players, home):
@@ -153,11 +141,17 @@ def renamePlayerFolders(src, home):
 				os.rename(childFile, newName)
 			os.chdir("..")
 
-def main(home):
-	# players = readXML('Player_Opta_IDs.xml')
-	players = readJson('players.json')
-	# files = readFiles('.', '.zip')
-	# runConversion(files, players, home)
+def main(x):
+	print("Reading from {}".format(PLAYER_FILE))
+	players = readJson(PLAYER_FILE)
+	print("\n{} players found in {}".format(len(players), PLAYER_FILE))
+	
+	print("Reading .zip files")
+	files = readFiles('.', '.zip')
+	print("\n{} .zip files found".format(len(files)))
+
+	print("\nConverting...")
+	runConversion(files, players, x)
 	# renamePlayerFolders(".", home)
 	# for failed in FAILED:
 	# 	print("Failed: " + failed)
@@ -170,4 +164,13 @@ def addPostFixToFileName(filename, postfix):
 	return newFilename
 
 if __name__ == '__main__':
-	main(False)
+	if(len(sys.argv) == 1):
+		print("Please provide an argument after the script name: Use either --h for home team or --a for away team")
+	else:
+		x = sys.argv[1]
+		if(x == "--h"):
+			main(True)
+		elif(x == "--a"):
+			main(False)
+		else:
+			print("Please provide a valid argument (--h for home or --a for away)")
